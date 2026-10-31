@@ -1,0 +1,31 @@
+import { BedDouble, MoonStar, Pencil, Plus, Trash2 } from "lucide-react";
+import { useMemo, useState } from "react";
+import { useNutri } from "../AppContext";
+import { GradientAreaChart, type ChartPoint } from "../components/charts";
+import { Button, Card, IconButton, Modal, PageHeading, Pill, ProgressBar, Ring } from "../components/ui";
+import type { SleepEntry } from "../types/nutrition";
+import { dateLabel, dateShift, totalSleepHours } from "../utils/nutrition";
+
+function SleepEditor({ entry, onClose }: { entry?: SleepEntry; onClose: () => void }) {
+  const { saveSleep, selectedDate } = useNutri();
+  const [draft, setDraft] = useState<SleepEntry>(entry ?? { id: crypto.randomUUID(), date: selectedDate, bedtime: "23:00", wakeTime: "07:00", duration: 8, quality: 4, notes: "" });
+  const duration = totalSleepHours(draft.bedtime, draft.wakeTime);
+  return <Modal title={entry ? "Edit sleep entry" : "Log your sleep"} onClose={onClose}><form className="sleep-form" onSubmit={(event) => { event.preventDefault(); saveSleep({ ...draft, duration }); onClose(); }}><label>Date<input type="date" value={draft.date} onChange={(event) => setDraft({ ...draft, date: event.target.value })} /></label><div className="form-grid"><label>Bedtime<input type="time" value={draft.bedtime} onChange={(event) => setDraft({ ...draft, bedtime: event.target.value })} /></label><label>Wake time<input type="time" value={draft.wakeTime} onChange={(event) => setDraft({ ...draft, wakeTime: event.target.value })} /></label></div><div className="sleep-duration-preview"><MoonStar size={19} /><strong>{duration.toFixed(1)} hours</strong><span>calculated automatically, including overnight sleep</span></div><label>Sleep quality <span className="field-value">{draft.quality}/5</span><input className="range-input" type="range" min="1" max="5" value={draft.quality} onChange={(event) => setDraft({ ...draft, quality: Number(event.target.value) })} /></label><label>Notes <span className="optional">optional</span><textarea value={draft.notes ?? ""} onChange={(event) => setDraft({ ...draft, notes: event.target.value })} placeholder="How did you sleep?" /></label><div className="modal-footer"><Button type="button" variant="ghost" onClick={onClose}>Cancel</Button><Button type="submit">Save sleep</Button></div></form></Modal>;
+}
+
+export default function Sleep() {
+  const { data, selectedDate, deleteSleep, data: { profile } } = useNutri();
+  const [editing, setEditing] = useState<SleepEntry | undefined>();
+  const [adding, setAdding] = useState(false);
+  const selected = data.sleep.find((item) => item.date === selectedDate);
+  const history = useMemo<ChartPoint[]>(() => Array.from({ length: 7 }, (_, index) => { const date = dateShift(index - 6); return { label: dateLabel(date, { weekday: "short" }), value: data.sleep.find((item) => item.date === date)?.duration ?? 0 }; }), [data.sleep]);
+  const recorded = data.sleep.filter((entry) => entry.duration > 0);
+  const average = recorded.length ? recorded.reduce((sum, entry) => sum + entry.duration, 0) / recorded.length : 0;
+  const consistency = recorded.length > 1 ? Math.max(0, 100 - Math.round(Math.sqrt(recorded.reduce((sum, entry) => sum + (entry.duration - average) ** 2, 0) / recorded.length) * 35)) : 0;
+  return <div className="page"><PageHeading eyebrow="Rest & recovery" title="Sleep with context." description="A quieter view of the habit that supports every other one." action={<Button onClick={() => setAdding(true)}><Plus size={17} />Log sleep</Button>} />
+    <div className="sleep-hero-grid"><Card className="sleep-hero"><div className="sleep-hero-icon"><BedDouble size={25} /></div><div><p className="eyebrow">Last night</p><h2>{selected ? `${selected.duration.toFixed(1)} hours` : "Not logged"}</h2><p className="subtle">{selected ? `${selected.quality}/5 sleep quality · ${selected.bedtime} to ${selected.wakeTime}` : "Add your bedtime and wake time to see it here."}</p></div><Ring value={(selected?.duration ?? 0) / profile.sleepTarget * 100} size={125} stroke={10} color="blue"><strong>{selected ? `${Math.round(selected.duration / profile.sleepTarget * 100)}%` : "—"}</strong><span>of target</span></Ring></Card>
+      <Card className="sleep-stat"><p className="eyebrow">7-day average</p><h2>{average.toFixed(1)}<span>h</span></h2><ProgressBar value={average / profile.sleepTarget * 100} color="blue" /><p>{profile.sleepTarget.toFixed(1)}h target</p></Card><Card className="sleep-stat"><p className="eyebrow">Consistency</p><h2>{consistency}<span>%</span></h2><ProgressBar value={consistency} color="purple" /><p>Based on duration variance</p></Card></div>
+    <Card className="sleep-chart-card"><div className="card-head"><div><p className="eyebrow">Sleep rhythm</p><h2>Hours over the last 7 days</h2></div><Pill tone="blue">Goal: {profile.sleepTarget}h</Pill></div><GradientAreaChart data={history} color="#3b82f6" valueLabel="Sleep" /></Card>
+    <div className="sleep-history-section"><div className="section-head"><div><p className="eyebrow">Sleep journal</p><h2>Your recent nights</h2></div></div><Card className="sleep-history-card">{[...data.sleep].sort((a, b) => b.date.localeCompare(a.date)).map((entry) => <div className="sleep-history-row" key={entry.id}><div className="sleep-day"><strong>{dateLabel(entry.date, { weekday: "short" })}</strong><span>{dateLabel(entry.date, { day: "numeric", month: "short" })}</span></div><div className="sleep-time"><strong>{entry.duration.toFixed(1)}h</strong><span>{entry.bedtime} – {entry.wakeTime}</span></div><div className="quality-dots" aria-label={`Quality ${entry.quality} out of 5`}>{Array.from({ length: 5 }, (_, index) => <i className={index < entry.quality ? "active" : ""} key={index} />)}</div><p className="sleep-note">{entry.notes || "No notes"}</p><IconButton aria-label={`Edit sleep for ${entry.date}`} onClick={() => setEditing(entry)}><Pencil size={15} /></IconButton><IconButton className="delete-icon" aria-label={`Delete sleep for ${entry.date}`} onClick={() => deleteSleep(entry.id)}><Trash2 size={15} /></IconButton></div>)}</Card></div>{adding && <SleepEditor onClose={() => setAdding(false)} />}{editing && <SleepEditor entry={editing} onClose={() => setEditing(undefined)} />}
+  </div>;
+}
