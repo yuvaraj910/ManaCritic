@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import type { Theme } from "../types/nutrition";
 import { dateLabel } from "../utils/nutrition";
 import { IconButton } from "./ui";
+import { ManaLogo } from "./ManaLogo";
 
 export type PageKey = "dashboard" | "food" | "nutrition" | "sleep" | "progress" | "settings";
 
@@ -17,7 +18,7 @@ export function AppShell({ page, setPage, selectedDate, setSelectedDate, theme, 
     setSelectedDate(date.toISOString().slice(0, 10));
   };
   return <div className="app-shell">
-    <aside className="sidebar"><a className="brand" href="#dashboard" onClick={() => setPage("dashboard")}><span className="brand-mark">n</span><span>nutri<span>track</span></span></a>
+    <aside className="sidebar"><a className="brand" href="#dashboard" onClick={() => setPage("dashboard")}><ManaLogo size={30} /><span className="brand-name">Mana <em>Critic</em></span></a>
       <nav>{nav.map(([key, label, Icon]) => <button key={key} className={page === key ? "nav-item active" : "nav-item"} onClick={() => setPage(key)}><Icon size={18} /><span>{label}</span></button>)}</nav>
       <div className="sidebar-foot"><div className="profile-chip"><span className="avatar">Y</span><div><strong>Your health</strong><small>Personal space</small></div></div></div>
     </aside>

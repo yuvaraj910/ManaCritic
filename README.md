@@ -1,6 +1,6 @@
-# NutriTrack
+# Mana Critic
 
-A private, frontend-only nutrition and wellness dashboard built with React, TypeScript, Vite, Tailwind CSS, Recharts, and Lucide.
+A private, frontend-only human performance and nutrition dashboard built with React, TypeScript, Vite, Tailwind CSS, Recharts, and Lucide.
 
 It includes a local Indian-food starter library, quantity-aware meal logging, explainable meal health scores, adaptive nutrition targets, micronutrient tracking, sleep and weight tracking, light/dark themes, and local JSON backup/import.
 

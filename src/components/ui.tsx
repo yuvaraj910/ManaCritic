@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes, ReactNode } from "react";
+import type { ButtonHTMLAttributes, CSSProperties, ReactNode } from "react";
 import { X } from "lucide-react";
 
 export function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
@@ -19,14 +19,10 @@ export function ProgressBar({ value, color = "orange", label, trail = true }: { 
 }
 
 export function Ring({ value, size = 100, stroke = 9, color = "orange", children }: { value: number; size?: number; stroke?: number; color?: string; children?: ReactNode }) {
-  const radius = (size - stroke) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const progress = circumference - Math.min(Math.max(value, 0), 100) / 100 * circumference;
-  return <div className="ring" style={{ width: size, height: size }}>
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-      <circle className="ring-trail" cx={size / 2} cy={size / 2} r={radius} strokeWidth={stroke} fill="none" />
-      <circle className={`ring-value ring-${color}`} cx={size / 2} cy={size / 2} r={radius} strokeWidth={stroke} fill="none" strokeDasharray={circumference} strokeDashoffset={progress} />
-    </svg>
+  const progress = Math.min(Math.max(value, 0), 100) * 3.6;
+  const style = { width: size, height: size, "--ring-progress": `${progress}deg`, "--ring-stroke": `${stroke}px` } as CSSProperties;
+  return <div className={`ring ring-${color}`} style={style}>
+    <div className="ring-gauge" aria-hidden="true" />
     <div className="ring-content">{children}</div>
   </div>;
 }

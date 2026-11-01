@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { makeDemoData } from "./data/demo";
+import { makeEmptyData } from "./data/demo";
 import { starterFoods } from "./data/foods";
 import { useLocalStorage } from "./hooks/useLocalStorage";
 import type { AppData, Food, Meal, Profile, SleepEntry, Targets, Theme, WeightEntry } from "./types/nutrition";
@@ -34,9 +34,14 @@ type NutriContextValue = {
 const NutriContext = createContext<NutriContextValue | null>(null);
 
 export function NutriProvider({ children }: { children: React.ReactNode }) {
-  const [data, setData] = useLocalStorage<AppData>("nutritrack-data-v1", makeDemoData());
-  const [theme, setTheme] = useLocalStorage<Theme>("nutritrack-theme-v1", "light");
+  const [data, setData] = useLocalStorage<AppData>("mana-critic-data-v1", makeEmptyData());
+  const [theme, setTheme] = useLocalStorage<Theme>("mana-critic-theme-v1", "light");
   const [selectedDate, setSelectedDate] = useState(isoDate());
+  useEffect(() => {
+    // The project was rebranded and intentionally starts with a clean slate.
+    window.localStorage.removeItem("nutritrack-data-v1");
+    window.localStorage.removeItem("nutritrack-theme-v1");
+  }, []);
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");
     document.documentElement.style.colorScheme = theme;
@@ -57,7 +62,7 @@ export function NutriProvider({ children }: { children: React.ReactNode }) {
     setProfile: (profile) => setData((old) => ({ ...old, profile })),
     setManualTargets: (manualTargets) => setData((old) => ({ ...old, manualTargets })),
     setWater: (date, water) => setData((old) => ({ ...old, waterByDate: { ...old.waterByDate, [date]: Math.max(0, water) } })),
-    resetData: () => setData(makeDemoData()),
+    resetData: () => setData(makeEmptyData()),
   }), [data, selectedDate, setData, setTheme, theme]);
   return <NutriContext.Provider value={value}>{children}</NutriContext.Provider>;
 }
