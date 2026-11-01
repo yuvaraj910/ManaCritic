@@ -18,10 +18,10 @@ export function ProgressBar({ value, color = "orange", label, trail = true }: { 
   return <div className={trail ? "progress-track" : ""} aria-label={label} title={label}><div className={`progress-fill progress-${color}`} style={{ width: `${capped}%` }} /></div>;
 }
 
-export function Ring({ value, size = 100, stroke = 9, color = "orange", children }: { value: number; size?: number; stroke?: number; color?: string; children?: ReactNode }) {
+export function Ring({ value, size = 100, stroke = 9, color = "orange", children, className = "" }: { value: number; size?: number; stroke?: number; color?: string; children?: ReactNode; className?: string }) {
   const progress = Math.min(Math.max(value, 0), 100) * 3.6;
   const style = { width: size, height: size, "--ring-progress": `${progress}deg`, "--ring-stroke": `${stroke}px` } as CSSProperties;
-  return <div className={`ring ring-${color}`} style={style}>
+  return <div className={`ring ring-${color} ${className}`} style={style}>
     <div className="ring-gauge" aria-hidden="true" />
     <div className="ring-content">{children}</div>
   </div>;
